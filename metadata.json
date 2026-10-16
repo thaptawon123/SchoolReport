@@ -1,0 +1,6 @@
+{
+  "name": "SchoolFix - ระบบแจ้งซ่อมภายในโรงเรียน (OOAD & OOP)",
+  "description": "ระบบบริหารจัดการและแจ้งซ่อมอุปกรณ์ภายในโรงเรียน ออกแบบด้วยหลัก OOAD และ OOP รองรับบทบาทผู้ดูแลระบบ ครู และช่างซ่อม พร้อมระบบติดตามสถานะและการประเมินผล",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}รายการแจ้งซ่อมทั้งหมด - SchoolFix{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold text-dark m-0">รายการใบแจ้งซ่อม</h3>
+    <p class="text-muted small m-0">ค้นหา ติดตาม และตรวจสอบประวัติงานแจ้งซ่อมบำรุง</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if not current_user.is_technician %}
+    <a href="{{ url_for('repair.create_repair') }}" class="btn btn-primary d-flex align-items-center gap-2">
+      <i class="fa-solid fa-plus"></i> แจ้งซ่อมใหม่
+    </a>
+    {% endif %}
+    <a href="{{ url_for('repair.export_csv', status=current_status, problem_type=current_type, urgency=current_urgency) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+      <i class="fa-solid fa-file-csv"></i> ส่งออก CSV
+    </a>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('repair.list_repairs') }}" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fs-xs text-muted mb-1">ค้นหา (เลขที่/สถานที่/ปัญหา)</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" name="search" class="form-control" placeholder="ค้นหา..." value="{{ search_query or '' }}">
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-2">
+        <label class="form-label fs-xs text-muted mb-1">สถานะ</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">ทั้งหมดทุกสถานะ</option>
+          {% for st in RequestStatus %}
+            <option value="{{ st.value }}" {% if current_status == st.value %}selected{% endif %}>{{ st.display_name() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2">
+        <label class="form-label fs-xs text-muted mb-1">ประเภทปัญหา</label>
+        <select name="problem_type" class="form-select form-select-sm">
+          <option value="">ทั้งหมดทุกประเภท</option>
+          {% for pt in ProblemType %}
+            <option value="{{ pt.value }}" {% if current_type == pt.value %}selected{% endif %}>{{ pt.display_name() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2">
+        <label class="form-label fs-xs text-muted mb-1">ความเร่งด่วน</label>
+        <select name="urgency" class="form-select form-select-sm">
+          <option value="">ทั้งหมด</option>
+          {% for ug in Urgency %}
+            <option value="{{ ug.value }}" {% if current_urgency == ug.value %}selected{% endif %}>{{ ug.display_name() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+          <i class="fa-solid fa-filter me-1"></i> กรองข้อมูล
+        </button>
+        <a href="{{ url_for('repair.list_repairs') }}" class="btn btn-light btn-sm border" title="ล้างตัวกรอง">
+          <i class="fa-solid fa-rotate-left"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr class="fs-xs text-muted text-uppercase">
+            <th>เลขที่ใบแจ้งซ่อม</th>
+            <th>วันที่แจ้ง</th>
+            <th>ผู้แจ้ง</th>
+            <th>สถานที่ / ห้อง</th>
+            <th>ประเภทปัญหา</th>
+            <th>ความเร่งด่วน</th>
+            <th>สถานะ</th>
+            <th>ช่างผู้รับผิดชอบ</th>
+            <th class="text-center">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td>
+              <a href="{{ url_for('repair.repair_detail', repair_id=req.id) }}" class="fw-bold text-primary font-monospace text-decoration-none">
+                {{ req.request_no }}
+              </a>
+            </td>
+            <td class="small text-muted">{{ req.created_at|thai_date }}</td>
+            <td>
+              <div class="small fw-medium">{{ req.reporter.fullname }}</div>
+              <div class="text-muted fs-xs">{{ req.reporter.department or '' }}</div>
+            </td>
+            <td>
+              <div class="small fw-semibold">{{ req.building }}</div>
+              <div class="text-muted fs-xs">{{ req.room }}</div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ req.problem_type_display }}</span>
+            </td>
+            <td>
+              {% if req.urgency == 'high' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-bolt me-1"></i> เร่งด่วน</span>
+              {% elif req.urgency == 'medium' %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">ปานกลาง</span>
+              {% else %}
+                <span class="badge bg-light text-muted border">ปกติ</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if req.status == 'pending' %}
+                <span class="badge bg-warning text-dark"><i class="fa-regular fa-clock me-1"></i> รอรับเรื่อง</span>
+              {% elif req.status == 'accepted' %}
+                <span class="badge bg-info text-dark"><i class="fa-solid fa-user-check me-1"></i> รับเรื่องแล้ว</span>
+              {% elif req.status == 'in_progress' %}
+                <span class="badge bg-primary"><i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังซ่อม</span>
+              {% elif req.status == 'completed' %}
+                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> ซ่อมเสร็จ</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if req.technician %}
+                <div class="small fw-medium text-dark"><i class="fa-solid fa-helmet-safety text-warning me-1"></i> {{ req.technician.fullname }}</div>
+                {% if req.due_date %}
+                  <div class="fs-xs text-muted">ครบกำหนด: {{ req.due_date|thai_date }}</div>
+                {% endif %}
+              {% else %}
+                <span class="text-muted small fst-italic">ยังไม่มอบหมาย</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('repair.repair_detail', repair_id=req.id) }}" class="btn btn-outline-primary" title="ดูรายละเอียด">
+                  <i class="fa-regular fa-eye"></i>
+                </a>
+                <a href="{{ url_for('repair.print_slip', repair_id=req.id) }}" target="_blank" class="btn btn-outline-secondary" title="พิมพ์ใบแจ้งซ่อม A4">
+                  <i class="fa-solid fa-print"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              <div class="py-4">
+                <i class="fa-regular fa-folder-open fa-3x text-secondary mb-3"></i>
+                <h5>ไม่พบข้อมูลใบแจ้งซ่อม</h5>
+                <p class="small text-muted mb-0">ไม่มีรายการที่ตรงกับเงื่อนไขการค้นหาของคุณในขณะนี้</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}เข้าสู่ระบบ - SchoolFix ระบบแจ้งซ่อมโรงเรียน{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 480px; width: 100%;">
+  <div class="card-header bg-primary text-white text-center py-4">
+    <div class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded-circle mb-2" style="width: 56px; height: 56px;">
+      <i class="fa-solid fa-wrench-screwdriver fa-2xl"></i>
+    </div>
+    <h3 class="fw-bold mb-1">SchoolFix</h3>
+    <p class="mb-0 text-white-50 fs-sm">ระบบบริหารงานแจ้งซ่อมอุปกรณ์และอาคารสถานที่</p>
+  </div>
+  <div class="card-body p-4 p-md-5">
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="mb-3">
+        <label for="username" class="form-label fw-medium">ชื่อผู้ใช้งาน (Username)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+          <input type="text" class="form-control" id="username" name="username" placeholder="เช่น somchai_admin" required autofocus>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="form-label fw-medium">รหัสผ่าน (Password)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+          <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="remember" name="remember">
+          <label class="form-check-label text-muted small" for="remember">จดจำการเข้าสู่ระบบ</label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+        <i class="fa-solid fa-right-to-bracket me-2"></i> เข้าสู่ระบบ
+      </button>
+    </form>
+
+    <div class="mt-4 pt-3 border-top">
+      <div class="text-center text-muted fs-xs fw-semibold mb-2">บัญชีทดสอบตามบทบาท (คลิกเพื่อกรอกอัตโนมัติ)</div>
+      <div class="d-flex flex-column gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm text-start d-flex justify-content-between align-items-center" onclick="fillCreds('somchai_admin', 'admin1234')">
+          <span><i class="fa-solid fa-shield-halved me-1"></i> <strong>Admin:</strong> นายสมชาย (ผู้ดูแล)</span>
+          <span class="badge bg-primary">admin1234</span>
+        </button>
+        <button type="button" class="btn btn-outline-success btn-sm text-start d-flex justify-content-between align-items-center" onclick="fillCreds('teacher_wilai', 'teacher1234')">
+          <span><i class="fa-solid fa-chalkboard-user me-1"></i> <strong>Teacher:</strong> ครูวิไล (ผู้แจ้ง)</span>
+          <span class="badge bg-success">teacher1234</span>
+        </button>
+        <button type="button" class="btn btn-outline-warning btn-sm text-start d-flex justify-content-between align-items-center" onclick="fillCreds('tech_prasert', 'tech1234')">
+          <span><i class="fa-solid fa-helmet-safety me-1"></i> <strong>Technician:</strong> ช่างประเสริฐ (ช่าง)</span>
+          <span class="badge bg-warning text-dark">tech1234</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fillCreds(u, p) {
+    document.getElementById('username').value = u;
+    document.getElementById('password').value = p;
+  }
+</script>
+{% endblock %}

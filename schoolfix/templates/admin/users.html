@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}จัดการบัญชีผู้ใช้งาน - SchoolFix{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold text-dark m-0">จัดการบัญชีผู้ใช้งาน</h3>
+    <p class="text-muted small m-0">กำหนดบทบาทผู้ใช้งาน เพิ่มบัญชี และควบคุมการเข้าถึงระบบ</p>
+  </div>
+  <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
+    <i class="fa-solid fa-user-plus"></i> เพิ่มผู้ใช้งานใหม่
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr class="fs-xs text-muted text-uppercase">
+            <th>ID</th>
+            <th>ชื่อผู้ใช้ (Username)</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th>อีเมล</th>
+            <th>กลุ่มสาระ / แผนก</th>
+            <th>บทบาท (Role)</th>
+            <th>สถานะบัญชี</th>
+            <th class="text-center">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="text-muted font-monospace small">#{{ u.id }}</td>
+            <td class="fw-semibold text-dark font-monospace">{{ u.username }}</td>
+            <td>
+              <div class="fw-medium text-dark">{{ u.fullname }}</div>
+              <div class="text-muted fs-xs">โทร: {{ u.phone or '-' }}</div>
+            </td>
+            <td class="small text-muted">{{ u.email }}</td>
+            <td class="small">{{ u.department or '-' }}</td>
+            <td>
+              {% if u.role == 'admin' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-shield-halved me-1"></i> ผู้ดูแลระบบ</span>
+              {% elif u.role == 'technician' %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fa-solid fa-helmet-safety me-1"></i> ช่างซ่อมบำรุง</span>
+              {% else %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-chalkboard-user me-1"></i> ครู/บุคลากร</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-circle-check me-1"></i> ใช้งานได้</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border"><i class="fa-solid fa-ban me-1"></i> ระงับการใช้งาน</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" class="d-inline">
+                {% if u.is_active %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="ระงับบัญชี">
+                    <i class="fa-solid fa-user-slash"></i> ระงับ
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-outline-success btn-sm" title="เปิดใช้งานบัญชี">
+                    <i class="fa-solid fa-user-check"></i> เปิดใช้
+                  </button>
+                {% endif %}
+              </form>
+              {% else %}
+                <span class="badge bg-light text-muted border">บัญชีปัจจุบัน</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add New User -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <form method="POST" action="{{ url_for('admin.manage_users') }}">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold" id="addUserModalLabel"><i class="fa-solid fa-user-plus me-2"></i> สร้างบัญชีผู้ใช้งานใหม่</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label for="username" class="form-label fw-medium required">ชื่อผู้ใช้งาน (Username) <span class="text-danger">*</span></label>
+            <input type="text" name="username" id="username" class="form-control" placeholder="เช่น teacher_somporn" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label fw-medium required">รหัสผ่านเริ่มต้น <span class="text-danger">*</span></label>
+            <input type="password" name="password" id="password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" required>
+          </div>
+          <div class="mb-3">
+            <label for="fullname" class="form-label fw-medium required">ชื่อ - นามสกุล <span class="text-danger">*</span></label>
+            <input type="text" name="fullname" id="fullname" class="form-control" placeholder="เช่น ครูสมพร วงศ์สว่าง" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label fw-medium required">อีเมล <span class="text-danger">*</span></label>
+            <input type="email" name="email" id="email" class="form-control" placeholder="somporn@school.ac.th" required>
+          </div>
+          <div class="mb-3">
+            <label for="role" class="form-label fw-medium required">บทบาทในระบบ <span class="text-danger">*</span></label>
+            <select name="role" id="role" class="form-select" required>
+              {% for r in UserRole %}
+                <option value="{{ r.value }}">{{ r.display_name() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="department" class="form-label fw-medium">กลุ่มสาระการเรียนรู้ / ฝ่ายงาน</label>
+            <input type="text" name="department" id="department" class="form-control" placeholder="เช่น กลุ่มสาระคณิตศาสตร์, งานอาคารสถานที่">
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label fw-medium">เบอร์โทรศัพท์</label>
+            <input type="text" name="phone" id="phone" class="form-control" placeholder="08x-xxx-xxxx">
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary px-4 fw-medium">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

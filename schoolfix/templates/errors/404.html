@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}404 ไม่พบหน้านี้ - SchoolFix{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-6 text-center">
+    <div class="display-1 text-primary fw-bold mb-3"><i class="fa-solid fa-magnifying-glass"></i> 404</div>
+    <h3 class="fw-bold text-dark mb-2">ไม่พบหน้าที่คุณต้องการ (Page Not Found)</h3>
+    <p class="text-secondary mb-4">
+      ข้อมูลหรือหน้าที่คุณพยายามค้นหาอาจถูกย้าย ลบ หรือหมายเลขใบแจ้งซ่อมไม่ถูกต้องในระบบ
+    </p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary px-4">
+      <i class="fa-solid fa-house me-1"></i> กลับสู่หน้าหลัก
+    </a>
+  </div>
+</div>
+{% endblock %}

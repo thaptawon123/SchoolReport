@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}แดชบอร์ดภาพรวม - SchoolFix{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold text-dark m-0">แดชบอร์ดภาพรวม</h3>
+    <p class="text-muted small m-0">
+      {% if current_user.is_admin %}
+        สถิติและข้อมูลการแจ้งซ่อมทั้งหมดภายในโรงเรียน
+      {% elif current_user.is_technician %}
+        รายการงานซ่อมบำรุงที่ได้รับมอบหมายของคุณ
+      {% else %}
+        สถานะการแจ้งซ่อมของคุณทั้งหมด
+      {% endif %}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if not current_user.is_technician %}
+    <a href="{{ url_for('repair.create_repair') }}" class="btn btn-primary d-flex align-items-center gap-2">
+      <i class="fa-solid fa-plus"></i> แจ้งซ่อมใหม่
+    </a>
+    {% endif %}
+    <a href="{{ url_for('repair.export_csv') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+      <i class="fa-solid fa-file-csv"></i> ส่งออก CSV
+    </a>
+  </div>
+</div>
+
+<!-- Metric Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-primary">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">งานทั้งหมด</div>
+          <div class="fs-3 fw-bold text-dark">{{ stats.total }}</div>
+        </div>
+        <div class="bg-primary-subtle text-primary p-2 rounded-3">
+          <i class="fa-solid fa-list-check fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-warning">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">รอรับเรื่อง</div>
+          <div class="fs-3 fw-bold text-warning">{{ stats.pending }}</div>
+        </div>
+        <div class="bg-warning-subtle text-warning p-2 rounded-3">
+          <i class="fa-regular fa-clock fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-info">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">รับเรื่องแล้ว</div>
+          <div class="fs-3 fw-bold text-info">{{ stats.accepted }}</div>
+        </div>
+        <div class="bg-info-subtle text-info p-2 rounded-3">
+          <i class="fa-solid fa-user-check fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-primary">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">กำลังดำเนินการ</div>
+          <div class="fs-3 fw-bold text-primary">{{ stats.in_progress }}</div>
+        </div>
+        <div class="bg-primary-subtle text-primary p-2 rounded-3">
+          <i class="fa-solid fa-screwdriver-wrench fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-success">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">ซ่อมเสร็จสิ้น</div>
+          <div class="fs-3 fw-bold text-success">{{ stats.completed }}</div>
+        </div>
+        <div class="bg-success-subtle text-success p-2 rounded-3">
+          <i class="fa-solid fa-circle-check fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-secondary">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted fs-xs fw-semibold">ค่าใช้จ่ายรวม</div>
+          <div class="fs-4 fw-bold text-dark">฿{{ "{:,.0f}".format(stats.total_cost) }}</div>
+        </div>
+        <div class="bg-light text-secondary p-2 rounded-3">
+          <i class="fa-solid fa-coins fa-lg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts & Summary Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="fw-bold m-0"><i class="fa-solid fa-chart-pie me-2 text-primary"></i> สัดส่วนประเภทปัญหา</h6>
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center p-3">
+        <div style="max-height: 260px; width: 100%;">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold m-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> รายการแจ้งซ่อมล่าสุด</h6>
+        <a href="{{ url_for('repair.list_repairs') }}" class="btn btn-sm btn-link text-decoration-none">ดูทั้งหมด &rarr;</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr class="fs-xs text-muted text-uppercase">
+                <th>เลขที่</th>
+                <th>สถานที่</th>
+                <th>ประเภท</th>
+                <th>สถานะ</th>
+                <th>วันที่</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in recent_requests %}
+              <tr>
+                <td class="fw-semibold text-primary font-monospace">{{ req.request_no }}</td>
+                <td>
+                  <div class="small fw-medium">{{ req.building }}</div>
+                  <div class="text-muted fs-xs">{{ req.room }}</div>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ req.problem_type_display }}</span></td>
+                <td>
+                  {% if req.status == 'pending' %}
+                    <span class="badge bg-warning text-dark"><i class="fa-regular fa-clock me-1"></i> รอรับเรื่อง</span>
+                  {% elif req.status == 'accepted' %}
+                    <span class="badge bg-info text-dark"><i class="fa-solid fa-user-check me-1"></i> รับเรื่องแล้ว</span>
+                  {% elif req.status == 'in_progress' %}
+                    <span class="badge bg-primary"><i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังซ่อม</span>
+                  {% elif req.status == 'completed' %}
+                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> เสร็จสิ้น</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ req.created_at|thai_date }}</td>
+                <td>
+                  <a href="{{ url_for('repair.repair_detail', repair_id=req.id) }}" class="btn btn-sm btn-light border">
+                    <i class="fa-regular fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">ยังไม่มีรายการแจ้งซ่อม</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['ระบบไฟฟ้า', 'เครื่องปรับอากาศ', 'คอมพิวเตอร์', 'เฟอร์นิเจอร์', 'อื่นๆ'],
+          datasets: [{
+            data: [
+              {{ stats.category_counts.get('electrical', 0) }},
+              {{ stats.category_counts.get('aircon', 0) }},
+              {{ stats.category_counts.get('computer', 0) }},
+              {{ stats.category_counts.get('furniture', 0) }},
+              {{ stats.category_counts.get('other', 0) }}
+            ],
+            backgroundColor: ['#f59e0b', '#06b6d4', '#3b82f6', '#8b5cf6', '#64748b']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
